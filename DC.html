@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa con Geolocalización</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+        .info {
+            padding: 20px;
+        }
+        #direccion, #coordenadas {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Selecciona una ubicación en el mapa</h2>
+    <div id="map"></div>
+    <div class="info">
+        <p id="direccion">Dirección: </p>
+        <p id="coordenadas">Coordenadas: </p>
+    </div>
+
+    <!-- Cargar Google Maps JavaScript API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyArxtuTt_T4RmaBPU6qzOGPeH_8kwlAJaY&libraries=places"></script>
+    <script>
+        let map;
+        let marker;
+        let geocoder;
+
+        function initMap() {
+            geocoder = new google.maps.Geocoder();
+            
+            // Centro inicial del mapa (puedes personalizarlo)
+            const centroInicial = { lat: 19.4326, lng: -99.1332 }; // Ciudad de México
+
+            // Crear el mapa
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: centroInicial,
+                zoom: 15,
+            });
+
+            // Crear el marcador
+            marker = new google.maps.Marker({
+                position: centroInicial,
+                map: map,
+                draggable: true, // Permite arrastrar el marcador
+            });
+
+            // Mostrar la dirección inicial
+            obtenerDireccion(centroInicial);
+
+            // Evento para actualizar la dirección cuando se mueve el marcador
+            marker.addListener("dragend", () => {
+                const nuevaPosicion = marker.getPosition();
+                map.panTo(nuevaPosicion);
+                obtenerDireccion(nuevaPosicion);
+            });
+
+            // Evento para actualizar el marcador al hacer clic en el mapa
+            map.addListener("click", (event) => {
+                marker.setPosition(event.latLng);
+                obtenerDireccion(event.latLng);
+            });
+        }
+
+        // Función para obtener la dirección según las coordenadas
+        function obtenerDireccion(latlng) {
+            geocoder.geocode({ location: latlng }, (results, status) => {
+                if (status === "OK") {
+                    if (results[0]) {
+                        document.getElementById("direccion").innerText = `Dirección: ${results[0].formatted_address}`;
+                        document.getElementById("coordenadas").innerText = `Coordenadas: ${latlng.lat().toFixed(6)}, ${latlng.lng().toFixed(6)}`;
+                    } else {
+                        document.getElementById("direccion").innerText = "Dirección: No se encontraron resultados";
+                    }
+                } else {
+                    document.getElementById("direccion").innerText = `Geocoder falló debido a: ${status}`;
+                }
+            });
+        }
+
+        // Iniciar el mapa cuando la página se carga
+        window.onload = initMap;
+    </script>
+</body>
+</html>
